@@ -2247,6 +2247,9 @@
         perbaruiHakAkses();
         muatServerData();
         bukaHalaman("dashboard");
+
+        // POLLING OTOMATIS SETIAP 5 DETIK UNTUK SINKRONISASI REAL-TIME
+        setInterval(muatServerData, 5000);
     });
 </script>
 
