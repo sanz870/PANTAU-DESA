@@ -1,0 +1,20 @@
+{
+    "name": "PANTAU DESA",
+    "short_name": "PantauDesa",
+    "start_url": "/index.html",
+    "display": "standalone",
+    "background_color": "#14532f",
+    "theme_color": "#14532f",
+    "icons": [
+      {
+        "src": "Pantau Desa2.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "Pantau Desa2.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ]
+  }

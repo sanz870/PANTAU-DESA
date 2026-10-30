@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tambah Data Warga - PANTAU DESA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f7f6; padding: 2rem 0; }
+        .card-custom { max-width: 600px; margin: auto; border-radius: 12px; padding: 2rem; background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .btn-success { background-color: #2ecc71; border: none; }
+    </style>
+</head>
+<body>
+    <div class="card-custom">
+        <h4 class="mb-4 text-success font-weight-bold">➕ Form Input Data Warga Baru</h4>
+        <form id="wargaForm">
+            <div class="mb-3">
+                <label class="form-label">NIK (Nomor Induk Kependudukan)</label>
+                <input type="text" id="nik" class="form-control" required placeholder="16 digit NIK">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Nama Lengkap</label>
+                <input type="text" id="nama" class="form-control" required placeholder="Nama lengkap warga">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Nomor KK (Kartu Keluarga)</label>
+                <input type="text" id="noKk" class="form-control" required placeholder="16 digit Nomor KK">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Jenis Kelamin</label>
+                <select id="jenisKelamin" class="form-select" required>
+                    <option value="Laki-laki">Laki-laki</option>
+                    <option value="Perempuan">Perempuan</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Tanggal Lahir</label>
+                <input type="date" id="tanggalLahir" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Alamat Lengkap</label>
+                <textarea id="alamat" class="form-control" rows="2" required placeholder="Alamat rumah / jalan"></textarea>
+            </div>
+            <button type="submit" class="btn btn-success w-100 font-weight-bold p-2">Simpan Data Warga</button>
+            <a href="/index.html" class="btn btn-link w-100 text-secondary text-center mt-2">Kembali ke Dashboard</a>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('wargaForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const body = {
+                nik: document.getElementById('nik').value,
+                nama: document.getElementById('nama').value,
+                noKk: document.getElementById('noKk').value,
+                jenisKelamin: document.getElementById('jenisKelamin').value,
+                tanggalLahir: document.getElementById('tanggalLahir').value,
+                alamat: document.getElementById('alamat').value
+            };
+
+            const res = await fetch('/api/warga', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                alert('Data warga berhasil ditambahkan!');
+                window.location.href = '/index.html';
+            } else {
+                alert(data.pesan);
+            }
+        });
+    </script>
+</body>
+</html>
