@@ -2206,7 +2206,7 @@
         sambungkan("addMemorial", formDuka);
         sambungkan("openDeveloperSettings", function () { bukaHalaman("pengaturan"); });
 
-        // FUNGSI MUAT DATA DARI SERVER SECARA PARALEL DAN AKURAT
+        // FUNGSI MUAT DATA SERVER SECARA REAL-TIME PARALEL
         async function muatServerData() {
             try {
                 const [resPelayanan, resAduan, resKegiatan, resDuka] = await Promise.all([
