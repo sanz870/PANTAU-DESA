@@ -1321,7 +1321,6 @@
         // =========================================
         const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
         
-        // Jika belum login, tendang kembali ke halaman utama login (index.html)
         if (!isLoggedIn) {
             window.location.href = 'index.html';
             return;
@@ -1348,11 +1347,10 @@
         let listKegiatanLocal = JSON.parse(localStorage.getItem('dataKegiatan') || '[]');
         let listMemorialLocal = JSON.parse(localStorage.getItem('dataMemorial') || '[]');
 
-        // Filter Waktu Otomatis
         const sekarang = Date.now();
         const satuHariMs = 24 * 60 * 60 * 1000;
-        const duaHariMs = 2 * 24 * 60 * 60 * 1000; // 2 Hari untuk Pelayanan
-        const tigaHariMs = 3 * 24 * 60 * 60 * 1000; // 3 Hari untuk Aduan
+        const duaHariMs = 2 * 24 * 60 * 60 * 1000;
+        const tigaHariMs = 3 * 24 * 60 * 60 * 1000;
 
         listMemorialLocal = listMemorialLocal.filter(item => (sekarang - item.timestamp) < satuHariMs);
         listPelayananLocal = listPelayananLocal.filter(item => (sekarang - (item.timestamp || item.id)) < duaHariMs);
@@ -1389,9 +1387,6 @@
             });
         }
 
-        // =========================================
-        // 2. TANGGAL OTOMATIS
-        // =========================================
         function perbaruiTanggal() {
             const target = $("tanggalOtomatis");
             if (!target) return;
@@ -1402,9 +1397,6 @@
         perbaruiTanggal();
         setInterval(perbaruiTanggal, 60000);
 
-        // =========================================
-        // 3. HAK AKSES TAMPILAN
-        // =========================================
         function perbaruiHakAkses() {
             tombolRole.forEach(function (tombol) {
                 tombol.classList.toggle("active", tombol.dataset.viewRole === roleAktif);
@@ -1426,9 +1418,6 @@
             });
         });
 
-        // =========================================
-        // 4. NAVIGASI ANTARHALAMAN & HAPUS NOTIFIKASI
-        // =========================================
         function bukaHalaman(id) {
             const tujuan = $(id);
             if (!tujuan || !tujuan.classList.contains("page-section")) return;
@@ -1478,9 +1467,6 @@
             });
         });
 
-        // =========================================
-        // 5. GRAFIK & DEMOGRAFI
-        // =========================================
         let dataUsia = [0, 0, 0, 0];
         let dataLaki = 0;
         let dataPerempuan = 0;
@@ -1668,9 +1654,6 @@
             gambarGrafikJenisKelamin();
         }
 
-        // =========================================
-        // 6. MODAL FORMULIR
-        // =========================================
         const modalBackdrop = $("modalBackdrop");
         const modalBox = modalBackdrop.querySelector(".modal");
         const modalForm = $("mainForm");
@@ -1726,7 +1709,6 @@
             
             if (opsi.onRender) opsi.onRender(modalFields);
 
-            // Handler preview file upload aduan
             const inputBerkas = $("fileInputAduan");
             const divPreview = $("pratinjauBukti");
             if (inputBerkas && divPreview) {
@@ -1753,11 +1735,6 @@
         $("cancelModal").addEventListener("click", tutupModal);
         modalBackdrop.addEventListener("click", function (e) { if (e.target === modalBackdrop) tutupModal(); });
 
-        // =========================================
-        // 7. FORMULIR & RENDER MASING-MASING HALAMAN
-        // =========================================
-
-        // --- Data Warga ---
         function formPendataan() {
             bukaModal({
                 judul: "Tambah Pendataan Warga",
@@ -1804,7 +1781,6 @@
             `).join('');
         }
 
-        // --- Pelayanan Surat ---
         function formSurat() {
             bukaModal({
                 judul: "Ajukan Pelayanan Surat",
@@ -1903,7 +1879,6 @@
             }
         }
 
-        // --- Aduan Warga (DENGAN UPLOAD FOTO/VIDEO & HAPUS OTOMATIS 3 HARI) ---
         function formAduan() {
             bukaModal({
                 judul: "Buat Aduan Warga", tombol: "Kirim Aduan", ikon: IKON_KIRIM,
@@ -1930,7 +1905,7 @@
                         });
                     }
 
-                    Promise.all(filePromises).then(mediaResults => {
+                    Promise.all(filePromises).then(async mediaResults => {
                         const timestampNow = Date.now();
                         const newAduan = {
                             id: timestampNow,
@@ -1945,10 +1920,21 @@
                         listAduanLocal.unshift(newAduan);
                         unreadAduanCount++;
                         simpanLocal();
+
+                        try {
+                            await fetch('/api/aduan', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(newAduan)
+                            });
+                        } catch (err) {
+                            console.log("Gagal kirim ke server database.");
+                        }
+
                         tutupModal();
                         renderAduan();
                         bukaHalaman("aduan");
-                        alert("Aduan warga berhasil dikirim (otomatis terhapus dalam 3 hari).");
+                        alert("Aduan warga berhasil dikirim dan tersinkronisasi ke server!");
                     });
                 }
             });
@@ -2028,7 +2014,6 @@
             }
         }
 
-        // --- Kegiatan RT ---
         function formKegiatan() {
             bukaModal({
                 judul: "Tambah Kegiatan RT", tombol: "Simpan Kegiatan",
@@ -2037,10 +2022,11 @@
                     { nama: "tanggal", label: "Tanggal", tipe: "date", kolom: "setengah", wajib: true },
                     { nama: "lokasi", label: "Lokasi", wajib: true }
                 ],
-                onSubmit: function() {
+                onSubmit: async function() {
                     const formData = new FormData(modalForm);
                     const newEvent = {
                         id: Date.now(),
+                        timestamp: Date.now(),
                         nama: formData.get("nama"),
                         tanggal: formData.get("tanggal"),
                         lokasi: formData.get("lokasi")
@@ -2049,6 +2035,17 @@
                     listKegiatanLocal.unshift(newEvent);
                     unreadEventCount++;
                     simpanLocal();
+
+                    try {
+                        await fetch('/api/kegiatan', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(newEvent)
+                        });
+                    } catch (err) {
+                        console.log("Gagal kirim kegiatan ke server.");
+                    }
+
                     tutupModal();
                     renderKegiatan();
                     bukaHalaman("kegiatan");
@@ -2107,7 +2104,6 @@
             }
         }
 
-        // --- Berita Duka (Bertahan 1 Hari) ---
         function formDuka() {
             bukaModal({
                 judul: "Tulis Berita Duka", tombol: "Sampaikan Berita", tema: "duka",
@@ -2115,7 +2111,7 @@
                     { nama: "nama", label: "Nama Almarhum/Almarhumah", wajib: true },
                     { nama: "waktu", label: "Waktu & Tempat Duka", tipe: "textarea", wajib: true }
                 ],
-                onSubmit: function() {
+                onSubmit: async function() {
                     const formData = new FormData(modalForm);
                     const newMemorial = {
                         id: Date.now(),
@@ -2127,6 +2123,17 @@
                     listMemorialLocal.unshift(newMemorial);
                     unreadMemorialCount++;
                     simpanLocal();
+
+                    try {
+                        await fetch('/api/memorial', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(newMemorial)
+                        });
+                    } catch (err) {
+                        console.log("Gagal kirim berita duka ke server.");
+                    }
+
                     tutupModal();
                     renderBeritaDuka();
                     bukaHalaman("berita-duka");
@@ -2191,7 +2198,6 @@
             renderBeritaDuka();
         }
 
-        // --- Hubungkan Tombol & Aksi ---
         function sambungkan(id, fungsi) { const el = $(id); if (el) el.addEventListener("click", fungsi); }
         sambungkan("addResident", formPendataan);
         sambungkan("addService", formSurat);
@@ -2202,16 +2208,33 @@
 
         async function muatServerData() {
             try {
-                const response = await fetch('/api/pelayanan');
-                if (response.ok) {
-                    const serverData = await response.json();
-                    if (Array.isArray(serverData) && serverData.length > 0) {
-                        listPelayananLocal = serverData;
-                        simpanLocal();
-                    }
+                const resPelayanan = await fetch('/api/pelayanan');
+                if (resPelayanan.ok) {
+                    const dataP = await resPelayanan.json();
+                    if (Array.isArray(dataP)) listPelayananLocal = dataP;
                 }
+
+                const resAduan = await fetch('/api/aduan');
+                if (resAduan.ok) {
+                    const dataA = await resAduan.json();
+                    if (Array.isArray(dataA)) listAduanLocal = dataA;
+                }
+
+                const resKegiatan = await fetch('/api/kegiatan');
+                if (resKegiatan.ok) {
+                    const dataK = await resKegiatan.json();
+                    if (Array.isArray(dataK)) listKegiatanLocal = dataK;
+                }
+
+                const resDuka = await fetch('/api/memorial');
+                if (resDuka.ok) {
+                    const dataD = await resDuka.json();
+                    if (Array.isArray(dataD)) listMemorialLocal = dataD;
+                }
+
+                simpanLocal();
             } catch (e) {
-                console.log("Mode lokal aktif.");
+                console.log("Menggunakan data lokal sementara.");
             }
             hitungDemografiWarga();
             renderDashboardSemua();
@@ -2221,33 +2244,6 @@
         muatServerData();
         bukaHalaman("dashboard");
     });
-
-    async function muatServerData() {
-        try {
-            // Ambil data Pelayanan
-            const resPelayanan = await fetch('/api/pelayanan');
-            if (resPelayanan.ok) listPelayananLocal = await resPelayanan.json();
-
-            // Ambil data Aduan
-            const resAduan = await fetch('/api/aduan');
-            if (resAduan.ok) listAduanLocal = await resAduan.json();
-
-            // Ambil data Kegiatan
-            const resKegiatan = await fetch('/api/kegiatan');
-            if (resKegiatan.ok) listKegiatanLocal = await resKegiatan.json();
-
-            // Ambil data Berita Duka
-            const resDuka = await fetch('/api/memorial');
-            if (resDuka.ok) listMemorialLocal = await resDuka.json();
-
-            simpanLocal();
-        } catch (e) {
-            console.log("Menggunakan data lokal sementara.");
-        }
-        hitungDemografiWarga();
-        renderDashboardSemua();
-    }
-
 </script>
 
 </body>
