@@ -24,7 +24,7 @@ async function connectDB() {
             throw new Error("Variabel lingkungan MONGO_URI belum diatur!");
         }
         await mongoose.connect(process.env.MONGO_URI, {
-            serverSelectionTimeoutMS: 10000,
+            serverSelectionTimeoutMS: 15000,
         });
         isConnected = true;
         console.log('✅ Berhasil terhubung ke Database MongoDB Atlas!');
@@ -81,7 +81,7 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // ==========================================
-// API DATA WARGA (REAL-TIME SYNC)
+// API DATA WARGA (DIOPTIMASI UNTUK HP & PC)
 // ==========================================
 app.get('/api/warga', async (req, res) => {
     try {
@@ -94,10 +94,19 @@ app.get('/api/warga', async (req, res) => {
 
 app.post('/api/warga', async (req, res) => {
     try {
-        const baru = new Warga(req.body);
+        // Membersihkan dan memetakan data agar aman diterima dari perangkat seluler manapun
+        const dataBersih = {
+            nama: req.body.nama || "Tanpa Nama",
+            gender: req.body.gender || req.body.jenisKelamin || "Laki-laki",
+            usia: Number(req.body.usia) || 0,
+            timestamp: req.body.timestamp || Date.now()
+        };
+
+        const baru = new Warga(dataBersih);
         await baru.save();
-        res.status(201).json(baru);
+        res.status(201).json({ message: "Berhasil disimpan", data: baru });
     } catch (error) {
+        console.error("Error simpan warga:", error);
         res.status(500).json({ error: error.message });
     }
 });
