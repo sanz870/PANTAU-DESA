@@ -1747,29 +1747,30 @@
                 onSubmit: async function() {
                     const formData = new FormData(modalForm);
                     const newWarga = {
-                        id: Date.now(),
                         nama: formData.get("nama"),
                         gender: formData.get("gender"),
-                        usia: Number(formData.get("usia")) || 0
+                        usia: Number(formData.get("usia")) || 0,
+                        timestamp: Date.now()
                     };
 
-                    listWargaLocal.push(newWarga);
-                    simpanLocal();
-                    hitungDemografiWarga();
-
                     try {
-                        await fetch('/api/warga', {
+                        const response = await fetch('/api/warga', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(newWarga)
                         });
-                    } catch (err) {
-                        console.log("Gagal kirim data warga ke server.");
-                    }
 
-                    tutupModal();
-                    muatServerData();
-                    alert("Data warga berhasil ditambahkan!");
+                        if (!response.ok) {
+                            throw new Error("Gagal menyimpan ke server database");
+                        }
+
+                        tutupModal();
+                        await muatServerData();
+                        alert("Data warga berhasil ditambahkan!");
+                    } catch (err) {
+                        console.error("Gagal:", err);
+                        alert("Gagal menyimpan ke server. Pastikan koneksi internet HP Anda stabil.");
+                    }
                 }
             });
         }
