@@ -15,10 +15,40 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// 1. Koneksi Database MongoDB Atlas
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('✅ Berhasil terhubung ke Database MongoDB Atlas!'))
-  .catch((err) => console.error('❌ Gagal terhubung ke Database:', err));
+// ==========================================
+// KONEKSI DATABASE MONGODB ATLAS (OPTIMASI SERVERLESS)
+// ==========================================
+let isConnected = false;
+
+async function connectDB() {
+    if (isConnected) return;
+    try {
+        if (!process.env.MONGO_URI) {
+            throw new Error("Variabel lingkungan MONGO_URI belum diatur di Vercel!");
+        }
+        await mongoose.connect(process.env.MONGO_URI, {
+            serverSelectionTimeoutMS: 10000, // Timeout setelah 10 detik jika gagal
+        });
+        isConnected = true;
+        console.log('✅ Berhasil terhubung ke Database MongoDB Atlas!');
+    } catch (error) {
+        console.error('❌ Gagal terhubung ke Database:', error.message);
+        throw error;
+    }
+}
+
+// Middleware untuk memastikan koneksi database aktif di setiap request
+app.use(async (req, res, next) => {
+    try {
+        await connectDB();
+        next();
+    } catch (error) {
+        res.status(500).json({ 
+            message: 'Kesalahan pada server database: Gagal menyambungkan ke MongoDB Atlas.', 
+            error: error.message 
+        });
+    }
+});
 
 // ==========================================
 // ENDPOINT: HALAMAN UTAMA (ROOT)
@@ -85,7 +115,7 @@ app.post('/api/auth/login', async (req, res) => {
         });
     } catch (error) {
         console.error('Error saat login:', error);
-        res.status(500).json({ message: 'Kesalahan pada server database.' });
+        res.status(500).json({ message: 'Kesalahan pada server database: ' + error.message });
     }
 });
 
@@ -173,7 +203,13 @@ app.post('/api/memorial', async (req, res) => {
     catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`🚀 Server berjalan di http://localhost:${PORT}`);
-});
+// Ekspor aplikasi agar kompatibel dengan Serverless Vercel
+module.exports = app;
+
+// Dijalankan secara lokal jika tidak di Vercel
+if (process.env.NODE_ENV !== 'production') {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+        console.log(`🚀 Server berjalan di http://localhost:${PORT}`);
+    });
+}
