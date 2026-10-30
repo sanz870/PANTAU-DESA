@@ -1744,7 +1744,7 @@
                     { nama: "gender", label: "Jenis Kelamin", tipe: "select", pilihan: ["Laki-laki", "Perempuan"] },
                     { nama: "usia", label: "Usia (Tahun)", tipe: "number", wajib: true, placeholder: "Contoh: 25" }
                 ],
-                onSubmit: function() {
+                onSubmit: async function() {
                     const formData = new FormData(modalForm);
                     const newWarga = {
                         id: Date.now(),
@@ -1756,7 +1756,19 @@
                     listWargaLocal.push(newWarga);
                     simpanLocal();
                     hitungDemografiWarga();
+
+                    try {
+                        await fetch('/api/warga', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(newWarga)
+                        });
+                    } catch (err) {
+                        console.log("Gagal kirim data warga ke server.");
+                    }
+
                     tutupModal();
+                    muatServerData();
                     alert("Data warga berhasil ditambahkan!");
                 }
             });
@@ -2206,32 +2218,40 @@
         sambungkan("addMemorial", formDuka);
         sambungkan("openDeveloperSettings", function () { bukaHalaman("pengaturan"); });
 
-        // FUNGSI MUAT DATA SERVER SECARA REAL-TIME PARALEL
+        // FUNGSI MUAT DATA SERVER SECARA REAL-TIME PARALEL (TERMASUK DATA WARGA)
         async function muatServerData() {
             try {
-                const [resPelayanan, resAduan, resKegiatan, resDuka] = await Promise.all([
-                    fetch('/api/pelayanan'),
-                    fetch('/api/aduan'),
-                    fetch('/api/kegiatan'),
-                    fetch('/api/memorial')
+                const [resWarga, resPelayanan, resAduan, resKegiatan, resDuka] = await Promise.all([
+                    fetch('/api/warga').catch(() => null),
+                    fetch('/api/pelayanan').catch(() => null),
+                    fetch('/api/aduan').catch(() => null),
+                    fetch('/api/kegiatan').catch(() => null),
+                    fetch('/api/memorial').catch(() => null)
                 ]);
 
-                if (resPelayanan.ok) {
+                if (resWarga && resWarga.ok) {
+                    const dataW = await resWarga.json();
+                    if (Array.isArray(dataW)) {
+                        listWargaLocal = dataW;
+                    }
+                }
+
+                if (resPelayanan && resPelayanan.ok) {
                     const dataP = await resPelayanan.json();
                     if (Array.isArray(dataP)) listPelayananLocal = dataP;
                 }
 
-                if (resAduan.ok) {
+                if (resAduan && resAduan.ok) {
                     const dataA = await resAduan.json();
                     if (Array.isArray(dataA)) listAduanLocal = dataA;
                 }
 
-                if (resKegiatan.ok) {
+                if (resKegiatan && resKegiatan.ok) {
                     const dataK = await resKegiatan.json();
                     if (Array.isArray(dataK)) listKegiatanLocal = dataK;
                 }
 
-                if (resDuka.ok) {
+                if (resDuka && resDuka.ok) {
                     const dataD = await resDuka.json();
                     if (Array.isArray(dataD)) listMemorialLocal = dataD;
                 }
