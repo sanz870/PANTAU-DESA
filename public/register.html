@@ -13,7 +13,7 @@
     <form id="formRegister" class="space-y-4">
       <div>
         <label class="block text-sm font-medium text-gray-700">Nama Lengkap</label>
-        <input type="text" id="regNama" required class="w-full mt-1 p-2 border rounded-lg focus:outline-none" style="focus-ring-color: #14532d;" placeholder="Masukkan nama sesuai KTP">
+        <input type="text" id="regNama" required class="w-full mt-1 p-2 border rounded-lg focus:outline-none" placeholder="Masukkan nama sesuai KTP">
       </div>
 
       <div>
@@ -30,7 +30,7 @@
     </form>
 
     <p class="text-sm text-center text-gray-600 mt-4">
-      Sudah punya akun? <a href="login.html" class="font-semibold hover:underline" style="color: #14532d;">Masuk di sini</a>
+      Sudah punya akun? <a href="index.html" class="font-semibold hover:underline" style="color: #14532d;">Masuk di sini</a>
     </p>
   </div>
 
@@ -55,13 +55,20 @@
         const data = await res.json();
         if (res.ok) {
           alert('Pendaftaran berhasil! Silakan login.');
-          window.location.href = 'login.html';
+          window.location.href = 'index.html';
         } else {
           alert(data.message || 'Pendaftaran gagal');
         }
       } catch (err) {
-        console.error('Error register:', err);
-        alert('Terjadi kesalahan koneksi server');
+        console.log('Mode lokal aktif / Gagal koneksi server, menyimpan ke sesi lokal.');
+        
+        // Cadangan penyimpanan lokal (LocalStorage) jika backend API belum aktif
+        let users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+        users.push(payload);
+        localStorage.setItem('registeredUsers', JSON.stringify(users));
+
+        alert('Pendaftaran berhasil (Mode Lokal)! Silakan login.');
+        window.location.href = 'index.html';
       }
     });
   </script>
