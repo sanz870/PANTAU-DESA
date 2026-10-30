@@ -833,8 +833,7 @@
                         </div>
                     </div>
 
-                    <button type="button"
-                            id="addResident">
+                    <button type="button" id="addResident">
                         + Tambah Data Warga
                     </button>
                 </div>
@@ -911,8 +910,7 @@
                         </div>
                     </div>
 
-                    <button type="button"
-                            id="addService">
+                    <button type="button" id="addService">
                         + Ajukan Surat
                     </button>
                 </div>
@@ -1004,8 +1002,7 @@
                         </div>
                     </div>
 
-                    <button type="button"
-                            id="addComplaint">
+                    <button type="button" id="addComplaint">
                         + Buat Aduan
                     </button>
                 </div>
@@ -1084,8 +1081,7 @@
                         </div>
                     </div>
 
-                    <button type="button"
-                            id="addEvent">
+                    <button type="button" id="addEvent">
                         + Tambah Kegiatan
                     </button>
                 </div>
@@ -1154,8 +1150,7 @@
                         </div>
                     </div>
 
-                    <button type="button"
-                            id="addMemorial">
+                    <button type="button" id="addMemorial">
                         + Tulis Berita Duka
                     </button>
 
@@ -1928,7 +1923,6 @@
         }
 
         function renderAduan() {
-            // Filter otomatis hapus aduan jika sudah lewat 3 hari (72 jam)
             const sekarang = Date.now();
             const tigaHariMs = 3 * 24 * 60 * 60 * 1000;
             listAduanLocal = listAduanLocal.filter(item => (sekarang - (item.timestamp || item.id)) < tigaHariMs);
