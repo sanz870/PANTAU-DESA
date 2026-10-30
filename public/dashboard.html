@@ -2206,27 +2206,31 @@
         sambungkan("addMemorial", formDuka);
         sambungkan("openDeveloperSettings", function () { bukaHalaman("pengaturan"); });
 
+        // FUNGSI MUAT DATA DARI SERVER SECARA PARALEL DAN AKURAT
         async function muatServerData() {
             try {
-                const resPelayanan = await fetch('/api/pelayanan');
+                const [resPelayanan, resAduan, resKegiatan, resDuka] = await Promise.all([
+                    fetch('/api/pelayanan'),
+                    fetch('/api/aduan'),
+                    fetch('/api/kegiatan'),
+                    fetch('/api/memorial')
+                ]);
+
                 if (resPelayanan.ok) {
                     const dataP = await resPelayanan.json();
                     if (Array.isArray(dataP)) listPelayananLocal = dataP;
                 }
 
-                const resAduan = await fetch('/api/aduan');
                 if (resAduan.ok) {
                     const dataA = await resAduan.json();
                     if (Array.isArray(dataA)) listAduanLocal = dataA;
                 }
 
-                const resKegiatan = await fetch('/api/kegiatan');
                 if (resKegiatan.ok) {
                     const dataK = await resKegiatan.json();
                     if (Array.isArray(dataK)) listKegiatanLocal = dataK;
                 }
 
-                const resDuka = await fetch('/api/memorial');
                 if (resDuka.ok) {
                     const dataD = await resDuka.json();
                     if (Array.isArray(dataD)) listMemorialLocal = dataD;
@@ -2234,7 +2238,7 @@
 
                 simpanLocal();
             } catch (e) {
-                console.log("Menggunakan data lokal sementara.");
+                console.log("Gagal memuat dari server, menggunakan data lokal.");
             }
             hitungDemografiWarga();
             renderDashboardSemua();
