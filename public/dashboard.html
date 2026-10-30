@@ -2221,6 +2221,33 @@
         muatServerData();
         bukaHalaman("dashboard");
     });
+
+    async function muatServerData() {
+        try {
+            // Ambil data Pelayanan
+            const resPelayanan = await fetch('/api/pelayanan');
+            if (resPelayanan.ok) listPelayananLocal = await resPelayanan.json();
+
+            // Ambil data Aduan
+            const resAduan = await fetch('/api/aduan');
+            if (resAduan.ok) listAduanLocal = await resAduan.json();
+
+            // Ambil data Kegiatan
+            const resKegiatan = await fetch('/api/kegiatan');
+            if (resKegiatan.ok) listKegiatanLocal = await resKegiatan.json();
+
+            // Ambil data Berita Duka
+            const resDuka = await fetch('/api/memorial');
+            if (resDuka.ok) listMemorialLocal = await resDuka.json();
+
+            simpanLocal();
+        } catch (e) {
+            console.log("Menggunakan data lokal sementara.");
+        }
+        hitungDemografiWarga();
+        renderDashboardSemua();
+    }
+
 </script>
 
 </body>

@@ -140,3 +140,48 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🚀 Server berjalan di http://localhost:${PORT}`);
 });
+
+const Pelayanan = require('./models/Pelayanan');
+const Aduan = require('./models/Aduan');
+const Kegiatan = require('./models/Kegiatan');
+const Memorial = require('./models/Memorial');
+
+// --- PELAYANAN ---
+app.get('/api/pelayanan', async (req, res) => {
+    try { const data = await Pelayanan.find().sort({ timestamp: -1 }); res.json(data); } 
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.post('/api/pelayanan', async (req, res) => {
+    try { const baru = new Pelayanan(req.body); await baru.save(); res.status(201).json(baru); } 
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// --- ADUAN ---
+app.get('/api/aduan', async (req, res) => {
+    try { const data = await Aduan.find().sort({ timestamp: -1 }); res.json(data); } 
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.post('/api/aduan', async (req, res) => {
+    try { const baru = new Aduan(req.body); await baru.save(); res.status(201).json(baru); } 
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// --- KEGIATAN ---
+app.get('/api/kegiatan', async (req, res) => {
+    try { const data = await Kegiatan.find().sort({ timestamp: -1 }); res.json(data); } 
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.post('/api/kegiatan', async (req, res) => {
+    try { const baru = new Kegiatan(req.body); await baru.save(); res.status(201).json(baru); } 
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// --- BERITA DUKA ---
+app.get('/api/memorial', async (req, res) => {
+    try { const data = await Memorial.find().sort({ timestamp: -1 }); res.json(data); } 
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.post('/api/memorial', async (req, res) => {
+    try { const baru = new Memorial(req.body); await baru.save(); res.status(201).json(baru); } 
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
