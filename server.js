@@ -17,6 +17,13 @@ mongoose.connect(process.env.MONGO_URI)
   .catch((err) => console.error('❌ Gagal terhubung ke Database:', err));
 
 // ==========================================
+// ENDPOINT: HALAMAN UTAMA (ROOT)
+// ==========================================
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/public/index.html');
+});
+
+// ==========================================
 // ENDPOINT: REGISTRASI WARGA / PENGGUNA
 // ==========================================
 app.post('/api/auth/register', async (req, res) => {
