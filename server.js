@@ -5,6 +5,10 @@ require('dotenv').config();
 
 const User = require('./models/User');
 const Warga = require('./models/Warga');
+const Pelayanan = require('./models/Pelayanan');
+const Aduan = require('./models/Aduan');
+const Kegiatan = require('./models/Kegiatan');
+const Memorial = require('./models/Memorial');
 
 const app = express();
 app.use(cors());
@@ -30,18 +34,15 @@ app.post('/api/auth/register', async (req, res) => {
     try {
         const { nama, noHp, password, role } = req.body;
 
-        // Validasi input kosong
         if (!nama || !noHp || !password) {
             return res.status(400).json({ message: 'Semua kolom wajib diisi!' });
         }
 
-        // Cek apakah nomor HP sudah terdaftar
         const existingUser = await User.findOne({ noHp });
         if (existingUser) {
             return res.status(400).json({ message: 'Nomor HP sudah terdaftar!' });
         }
 
-        // Simpan user baru (menggunakan password teks biasa)
         const newUser = new User({
             nama,
             noHp,
@@ -64,23 +65,19 @@ app.post('/api/auth/login', async (req, res) => {
     try {
         const { noHp, password } = req.body;
 
-        // Validasi jika input kosong
         if (!noHp || !password) {
             return res.status(400).json({ message: 'Nomor HP dan password wajib diisi!' });
         }
 
-        // Cari user berdasarkan nomor HP di database Mongoose
         const user = await User.findOne({ noHp });
         if (!user) {
             return res.status(400).json({ message: 'Nomor HP tidak terdaftar!' });
         }
 
-        // Periksa kesesuaian password (teks biasa)
         if (user.password !== password) {
             return res.status(400).json({ message: 'Password salah!' });
         }
 
-        // Jika berhasil login
         res.status(200).json({
             message: 'Login berhasil!',
             role: user.role,
@@ -136,16 +133,6 @@ app.get('/api/warga/statistik', async (req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`🚀 Server berjalan di http://localhost:${PORT}`);
-});
-
-const Pelayanan = require('./models/Pelayanan');
-const Aduan = require('./models/Aduan');
-const Kegiatan = require('./models/Kegiatan');
-const Memorial = require('./models/Memorial');
-
 // --- PELAYANAN ---
 app.get('/api/pelayanan', async (req, res) => {
     try { const data = await Pelayanan.find().sort({ timestamp: -1 }); res.json(data); } 
@@ -184,4 +171,9 @@ app.get('/api/memorial', async (req, res) => {
 app.post('/api/memorial', async (req, res) => {
     try { const baru = new Memorial(req.body); await baru.save(); res.status(201).json(baru); } 
     catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`🚀 Server berjalan di http://localhost:${PORT}`);
 });
